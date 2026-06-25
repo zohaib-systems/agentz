@@ -1,0 +1,32 @@
+{
+  "goals": [
+    {
+      "title": "Financial Independence",
+      "target": "350000 USD",
+      "deadline": "2030-12-31",
+      "purpose": "System Built"
+    },
+    {
+      "title": "Financial Growth",
+      "target": "175000 USD", 
+      "deadline": "2028-12-26",
+      "purpose": "Financial independence with multistream income"
+    }
+  ],
+  "finances": {
+    "monthly_income_pkr": 233333,
+    "monthly_expenses_pkr": 20000,
+    "monthly_surplus_pkr": 213333,
+    "net_worth_pkr": 0,
+    "level": "Financial Growth"
+  },
+  "habits": [
+    {
+      "name": "Exercise",
+      "streak": 1,
+      "target_days": 21,
+      "status": "active"
+    }
+  ],
+  "deadlines": []
+}
