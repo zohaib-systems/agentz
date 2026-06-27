@@ -86,8 +86,7 @@ def security_screen(text: str) -> str | None:
     for phrase in INJECTION_PHRASES:
         if phrase in text_lower:
             return (
-                f"⚠️ Security: Suspicious input detected ('{phrase}'). "
-                "Request blocked."
+                f"⚠️ Security: Suspicious input detected ('{phrase}'). Request blocked."
             )
     return None
 
@@ -95,6 +94,7 @@ def security_screen(text: str) -> str | None:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _load_keywords() -> list[str]:
     """Load keyword list from skillset.md."""
@@ -150,10 +150,25 @@ def _compute_score(matched: list[str], keywords: list[str], job_text: str) -> in
     score = max(raw, bonus_score)
 
     # Floor rule — only if no meaningful matches found
-    floor_keywords = ["react", "node", "nodejs", "python", "medical", "ai", "mern",
-                      "next.js", "nextjs", "typescript", "mongodb", "firebase"]
+    floor_keywords = [
+        "react",
+        "node",
+        "nodejs",
+        "python",
+        "medical",
+        "ai",
+        "mern",
+        "next.js",
+        "nextjs",
+        "typescript",
+        "mongodb",
+        "firebase",
+    ]
     job_lower = job_text.lower()
-    if any(fuzz.partial_ratio(w, job_lower) >= FUZZY_THRESHOLD for w in floor_keywords) and score < 60:
+    if (
+        any(fuzz.partial_ratio(w, job_lower) >= FUZZY_THRESHOLD for w in floor_keywords)
+        and score < 60
+    ):
         score = 60
 
     return min(score, 100)
@@ -195,11 +210,10 @@ def _get_calendar_service():
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             from google.auth.transport.requests import Request
+
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                CALENDAR_CREDS, SCOPES
-            )
+            flow = InstalledAppFlow.from_client_secrets_file(CALENDAR_CREDS, SCOPES)
             creds = flow.run_local_server(port=0)
         with open(CALENDAR_TOKEN, "wb") as f:
             pickle.dump(creds, f)
@@ -209,6 +223,7 @@ def _get_calendar_service():
 # ---------------------------------------------------------------------------
 # Google Jobs Scraper via SerpAPI
 # ---------------------------------------------------------------------------
+
 
 def _fetch_google_jobs(query: str = "React developer AI freelance") -> list[dict]:
     """Fetch job listings from Google Jobs via SerpAPI."""
@@ -240,14 +255,16 @@ def _fetch_google_jobs(query: str = "React developer AI freelance") -> list[dict
             for item in h.get("items", []):
                 description += f" {item}"
 
-        jobs.append({
-            "title": j.get("title", ""),
-            "company": j.get("company_name", ""),
-            "location": j.get("location", ""),
-            "description": description.strip(),
-            "apply_link": j.get("related_links", [{}])[0].get("link", ""),
-            "fetched_at": datetime.utcnow().isoformat(),
-        })
+        jobs.append(
+            {
+                "title": j.get("title", ""),
+                "company": j.get("company_name", ""),
+                "location": j.get("location", ""),
+                "description": description.strip(),
+                "apply_link": j.get("related_links", [{}])[0].get("link", ""),
+                "fetched_at": datetime.utcnow().isoformat(),
+            }
+        )
 
     return jobs
 
@@ -299,8 +316,10 @@ def run_auto_fetch_and_score() -> dict:
             "score": score,
             "matched_skills": matched,
             "reasoning": (
-                "Strong match" if score >= 80
-                else "Partial match" if score >= 50
+                "Strong match"
+                if score >= 80
+                else "Partial match"
+                if score >= 50
                 else "Weak match"
             ),
             "fetched_at": job["fetched_at"],
@@ -310,7 +329,7 @@ def run_auto_fetch_and_score() -> dict:
         _upsert_dashboard_job(dashboard_entry)
         scored.append(dashboard_entry)
 
-    high_quality = [j for j in scored if j["score"] >= 70]
+    high_quality = [j for j in scored if int(j.get("score", 0)) >= 70]
     return {
         "total_fetched": len(unique_jobs),
         "total_scored": len(scored),
@@ -326,6 +345,7 @@ def run_auto_fetch_and_score() -> dict:
 # ---------------------------------------------------------------------------
 # Tools
 # ---------------------------------------------------------------------------
+
 
 def auto_fetch_jobs(tool_context: ToolContext) -> str:
     """Trigger a full Google Jobs fetch + score cycle and push results to dashboard."""
@@ -343,9 +363,9 @@ def auto_fetch_jobs(tool_context: ToolContext) -> str:
         f"→ Scored:  {result['total_scored']} jobs\n"
         f"→ High quality (≥70): {result['high_quality']} jobs\n"
         f"→ Dashboard updated: {DASHBOARD_FILE}\n\n"
-        f"Top 3:\n" +
-        "\n".join(
-            f"  {i+1}. {j['title']} @ {j['company']} — Score: {j['score']}"
+        f"Top 3:\n"
+        + "\n".join(
+            f"  {i + 1}. {j['title']} @ {j['company']} — Score: {j['score']}"
             for i, j in enumerate(result.get("top_3", []))
         )
     )
@@ -367,15 +387,19 @@ def score_opportunity(job_description: str, tool_context: ToolContext) -> str:
     scored_list.append({"job": job_description[:100], "score": score})
     tool_context.state["scored_jobs"] = scored_list
 
-    return json.dumps({
-        "score": score,
-        "matched_skills": matched,
-        "reasoning": (
-            "Strong match" if score >= 80
-            else "Partial match" if score >= 50
-            else "Weak match"
-        ),
-    })
+    return json.dumps(
+        {
+            "score": score,
+            "matched_skills": matched,
+            "reasoning": (
+                "Strong match"
+                if score >= 80
+                else "Partial match"
+                if score >= 50
+                else "Weak match"
+            ),
+        }
+    )
 
 
 def draft_proposal(job_description: str, score: str, tool_context: ToolContext) -> str:
@@ -422,11 +446,13 @@ def draft_proposal(job_description: str, score: str, tool_context: ToolContext) 
     if "proposals_drafted" not in tool_context.state:
         tool_context.state["proposals_drafted"] = []
     proposals = list(tool_context.state["proposals_drafted"])
-    proposals.append({
-        "job_description": job_description[:100],
-        "proposal": proposal_text,
-        "status": "pending_review",
-    })
+    proposals.append(
+        {
+            "job_description": job_description[:100],
+            "proposal": proposal_text,
+            "status": "pending_review",
+        }
+    )
     tool_context.state["proposals_drafted"] = proposals
 
     return (
@@ -469,7 +495,8 @@ def get_morning_briefing(tool_context: ToolContext) -> str:
     habit_str = (
         f"{active_habit.get('name', 'None')} "
         f"(Day {active_habit.get('streak', 0)} of {active_habit.get('target_days', 0)})"
-        if active_habit else "None"
+        if active_habit
+        else "None"
     )
 
     deadlines = data.get("deadlines", [])
@@ -482,7 +509,8 @@ def get_morning_briefing(tool_context: ToolContext) -> str:
     jobs_line = (
         f"💼 New Jobs in Dashboard: {len(new_jobs)} "
         f"({len(high_score_new)} high-quality ≥70)"
-        if new_jobs else "💼 No new jobs in dashboard"
+        if new_jobs
+        else "💼 No new jobs in dashboard"
     )
 
     return (
@@ -513,12 +541,14 @@ def triage_emails(emails: str) -> str:
         if any(w in subject for w in ["invoice", "receipt", "payment", "paid"]):
             category = "PAYMENT"
             reason = "Payment related."
-        elif any(w in sender for w in ["client", "healthclinic", "project"]) or \
-             any(w in subject for w in ["project", "update", "revision", "delivery"]):
+        elif any(w in sender for w in ["client", "healthclinic", "project"]) or any(
+            w in subject for w in ["project", "update", "revision", "delivery"]
+        ):
             category = "CLIENT"
             reason = "From a client or project-related."
-        elif any(w in subject for w in ["order", "inquiry", "job", "new gig", "request"]) or \
-             any(w in sender for w in ["fiverr", "upwork", "linkedin"]):
+        elif any(
+            w in subject for w in ["order", "inquiry", "job", "new gig", "request"]
+        ) or any(w in sender for w in ["fiverr", "upwork", "linkedin"]):
             category = "OPPORTUNITY"
             reason = "Potential new opportunity."
 
@@ -544,7 +574,7 @@ def get_dashboard_summary(tool_context: ToolContext) -> str:
     low = [j for j in jobs if j.get("score", 0) < 50]
 
     top_jobs = "\n".join(
-        f"  • {j['title']} @ {j['company']} — Score {j['score']} [{j.get('status','new')}]"
+        f"  • {j['title']} @ {j['company']} — Score {j['score']} [{j.get('status', 'new')}]"
         for j in jobs[:5]
     )
 
@@ -558,8 +588,8 @@ def get_dashboard_summary(tool_context: ToolContext) -> str:
         f"  🟡 Mid  match (50-69): {len(mid)}\n"
         f"  🔴 Low  match (<50): {len(low)}\n\n"
         f"By status:\n"
-        + "\n".join(f"  {k}: {len(v)}" for k, v in by_status.items()) +
-        f"\n\nTop 5 Jobs:\n{top_jobs}\n\n"
+        + "\n".join(f"  {k}: {len(v)}" for k, v in by_status.items())
+        + f"\n\nTop 5 Jobs:\n{top_jobs}\n\n"
         f"Last fetch: {last_fetch}"
     )
 
@@ -567,6 +597,7 @@ def get_dashboard_summary(tool_context: ToolContext) -> str:
 # ---------------------------------------------------------------------------
 # Calendar Tools
 # ---------------------------------------------------------------------------
+
 
 def schedule_event(
     title: str,
@@ -608,7 +639,14 @@ def schedule_event(
         if "scheduled_events" not in tool_context.state:
             tool_context.state["scheduled_events"] = []
         events = list(tool_context.state["scheduled_events"])
-        events.append({"title": title, "date": date, "time": time, "duration_minutes": duration_minutes})
+        events.append(
+            {
+                "title": title,
+                "date": date,
+                "time": time,
+                "duration_minutes": duration_minutes,
+            }
+        )
         tool_context.state["scheduled_events"] = events
 
         return (
@@ -696,7 +734,10 @@ def check_focus_schedule(tool_context: ToolContext) -> str:
                 end_fmt = end_dt.strftime("%H:%M") if end_dt else "unknown"
                 return f"🎯 FOCUS MODE: {title} is active until {end_fmt}. Notifications paused."
             else:
-                minutes_until = int((start_dt - now.replace(tzinfo=start_dt.tzinfo)).total_seconds() / 60)
+                minutes_until = int(
+                    (start_dt - now.replace(tzinfo=start_dt.tzinfo)).total_seconds()
+                    / 60
+                )
                 return f"🔔 REMINDER: {title} starts in {minutes_until} minutes. Prepare to focus."
 
         return "✅ No upcoming events. You're free to work."
@@ -713,6 +754,7 @@ def check_focus_schedule(tool_context: ToolContext) -> str:
 # Scheduler
 # ---------------------------------------------------------------------------
 
+
 def _start_scheduler() -> BackgroundScheduler:
     """Start background scheduler that auto-fetches jobs every N hours."""
     scheduler = BackgroundScheduler()
@@ -725,9 +767,7 @@ def _start_scheduler() -> BackgroundScheduler:
         # next_run_time=datetime.utcnow(),  # uncomment for production
     )
     scheduler.start()
-    print(
-        f"⏰ Scheduler started — auto-fetching every {FETCH_INTERVAL_HOURS}h."
-    )
+    print(f"⏰ Scheduler started — auto-fetching every {FETCH_INTERVAL_HOURS}h.")
     return scheduler
 
 

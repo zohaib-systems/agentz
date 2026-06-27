@@ -22,6 +22,8 @@ dependencies = [
     "google-search-results>=2.4.2",
     "groq>=1.5.0",
     "litellm>=1.85.4",
+    "google-api-python-client>=2.198.0",
+    "google-auth-oauthlib>=1.4.0",
 ]
 requires-python = ">=3.11,<3.14"
 
