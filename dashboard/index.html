@@ -46,7 +46,6 @@
       overflow-x: hidden;
     }
 
-    /* Scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
     }
@@ -60,7 +59,6 @@
       border-radius: 3px;
     }
 
-    /* Header */
     .header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -122,7 +120,6 @@
       letter-spacing: 0.5px;
     }
 
-    /* Nav tabs */
     .nav {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -156,14 +153,12 @@
       border-bottom-color: var(--blue);
     }
 
-    /* Main */
     .main {
       padding: 24px;
       max-width: 1400px;
       margin: 0 auto;
     }
 
-    /* Panel */
     .panel {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -191,7 +186,6 @@
       padding: 20px;
     }
 
-    /* Buttons */
     .btn {
       padding: 8px 16px;
       border-radius: 8px;
@@ -243,7 +237,11 @@
       border: 1px solid var(--red);
     }
 
-    /* Score badge */
+    .btn-gold {
+      background: var(--gold);
+      color: #1a1a1a;
+    }
+
     .score-badge {
       display: inline-flex;
       align-items: center;
@@ -269,7 +267,6 @@
       color: #fca5a5;
     }
 
-    /* Job card */
     .job-card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -325,7 +322,6 @@
       margin-top: 12px;
     }
 
-    /* Filter tabs */
     .filter-tabs {
       display: flex;
       gap: 8px;
@@ -351,7 +347,6 @@
       border-color: var(--blue);
     }
 
-    /* Chat */
     .chat-messages {
       height: 320px;
       overflow-y: auto;
@@ -422,7 +417,6 @@
       color: var(--gray);
     }
 
-    /* Email chips */
     .email-chip {
       display: inline-flex;
       align-items: center;
@@ -454,7 +448,6 @@
       color: #64748b;
     }
 
-    /* Briefing cards */
     .briefing-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -487,13 +480,6 @@
       color: var(--text);
     }
 
-    .briefing-card .sub {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    /* Textarea */
     .textarea {
       width: 100%;
       background: var(--card);
@@ -517,7 +503,6 @@
       color: var(--gray);
     }
 
-    /* Empty state */
     .empty {
       text-align: center;
       padding: 40px 20px;
@@ -530,7 +515,6 @@
       margin-bottom: 8px;
     }
 
-    /* Loading */
     .loading {
       display: inline-flex;
       gap: 4px;
@@ -567,7 +551,6 @@
       }
     }
 
-    /* Proposal card */
     .proposal-card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -611,34 +594,18 @@
       color: #6ee7b7;
     }
 
-    /* Grid layouts */
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
     }
 
-    .grid-3 {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 1024px) {
-      .grid-3 {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
     @media (max-width: 640px) {
-
-      .grid-2,
-      .grid-3 {
+      .grid-2 {
         grid-template-columns: 1fr;
       }
     }
 
-    /* Toast */
     .toast {
       position: fixed;
       bottom: 24px;
@@ -656,12 +623,12 @@
     @keyframes slideIn {
       from {
         transform: translateY(20px);
-        opacity: 0;
+        opacity: 0
       }
 
       to {
         transform: translateY(0);
-        opacity: 1;
+        opacity: 1
       }
     }
 
@@ -670,58 +637,247 @@
       border-top: 1px solid var(--border);
       margin: 16px 0;
     }
+
+    /* Focus Mode */
+    .focus-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .focus-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      text-align: center;
+      max-width: 600px;
+    }
+
+    .focus-mode-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 32px;
+    }
+
+    .focus-mode-label.work {
+      color: var(--blue);
+    }
+
+    .focus-mode-label.break {
+      color: var(--green);
+    }
+
+    .focus-timer {
+      font-size: 80px;
+      font-weight: 700;
+      font-family: var(--mono);
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 24px;
+    }
+
+    .focus-timer.break {
+      color: var(--green);
+    }
+
+    .focus-progress-wrap {
+      width: 320px;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-bottom: 32px;
+      overflow: hidden;
+    }
+
+    .focus-progress-bar {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 1s linear;
+    }
+
+    .focus-progress-bar.work {
+      background: var(--blue);
+    }
+
+    .focus-progress-bar.break {
+      background: var(--green);
+    }
+
+    .focus-pomodoros {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .pomo-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+
+    .pomo-dot.done {
+      background: var(--gold);
+    }
+
+    .focus-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .focus-summary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      max-width: 400px;
+    }
+
+    .focus-summary h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: var(--gold);
+    }
+
+    .focus-summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .focus-stat {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .focus-stat .val {
+      font-size: 24px;
+      font-weight: 700;
+      font-family: var(--mono);
+      color: var(--blue);
+    }
+
+    .focus-stat .lbl {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .focus-setup {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 480px;
+      width: 100%;
+    }
+
+    .focus-setup h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .focus-setup p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .focus-input {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 15px;
+      color: var(--text);
+      font-family: var(--font);
+      outline: none;
+      margin-bottom: 16px;
+    }
+
+    .focus-input:focus {
+      border-color: var(--blue);
+    }
+
+    .focus-duration-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .duration-chip {
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      font-size: 13px;
+      font-family: var(--font);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+
+    .duration-chip.active {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: #1e3a6e;
+    }
+
+    /* Focus active indicator in nav */
+    .nav-tab.focus-active {
+      color: var(--gold) !important;
+      border-bottom-color: var(--gold) !important;
+    }
   </style>
 </head>
 
 <body>
   <div id="root"></div>
-
   <script type="text/babel">
     const ADK_BASE = "http://127.0.0.1:8000";
     const USER_ID = "zohaib";
     const SESSION_ID = "dashboard-" + Date.now();
 
-    // ── Helpers ──────────────────────────────────────────────────────────────────
-
     function ScoreBadge({ score }) {
       const cls = score >= 70 ? "score-high" : score >= 50 ? "score-mid" : "score-low";
       return <span className={"score-badge " + cls}>{score}/100</span>;
     }
-
     function Loading() {
-      return (
-        <span className="loading">
-          <span className="dot" /><span className="dot" /><span className="dot" />
-        </span>
-      );
+      return <span className="loading"><span className="dot" /><span className="dot" /><span className="dot" /></span>;
     }
-
     function Toast({ msg, onClose }) {
-      React.useEffect(() => {
-        const t = setTimeout(onClose, 3000);
-        return () => clearTimeout(t);
-      }, []);
+      React.useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t); }, []);
       return <div className="toast">✓ {msg}</div>;
     }
-
     async function callAgent(message) {
       await fetch(`${ADK_BASE}/apps/app/users/${USER_ID}/sessions/${SESSION_ID}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      }).catch(() => {});
-
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}),
+      }).catch(() => { });
       const res = await fetch(`${ADK_BASE}/run`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          app_name: "app",
-          user_id: USER_ID,
-          session_id: SESSION_ID,
-          new_message: { role: "user", parts: [{ text: message }] },
+          app_name: "app", user_id: USER_ID, session_id: SESSION_ID,
+          new_message: { role: "user", parts: [{ text: message }] }
         }),
       });
-
       const data = await res.json();
       if (Array.isArray(data)) {
         const modelEvents = data.filter(e => e.content?.parts && e.content?.role === "model");
@@ -730,31 +886,197 @@
           return last.content.parts.map(p => p.text || "").join("");
         }
         const last = data[data.length - 1];
-        if (last?.content?.parts) {
-          return last.content.parts.map(p => p.text || "").join("");
-        }
+        if (last?.content?.parts) return last.content.parts.map(p => p.text || "").join("");
       }
       if (data.detail) return "⚠️ " + data.detail;
       if (data.text) return data.text;
       return JSON.stringify(data);
     }
 
-    // ── Opportunities Panel ───────────────────────────────────────────────────────
+    // ── Focus Mode ────────────────────────────────────────────────────────────────
+    function FocusMode({ focusState, setFocusState, setTab }) {
+      const WORK_DURATIONS = [25, 45, 90];
+      const BREAK_DURATION = 5;
 
+      // Persistent state (survives tab switches)
+      const phase = focusState.phase;
+      const topic = focusState.topic;
+      const workMins = focusState.workMins;
+      const pomodoros = focusState.pomodoros;
+      const totalFocused = focusState.totalFocused;
+
+      function setPhase(v) { setFocusState(s => ({ ...s, phase: v })); }
+      function setTopic(v) { setFocusState(s => ({ ...s, topic: v })); }
+      function setWorkMins(v) { setFocusState(s => ({ ...s, workMins: v })); }
+      function incPomodoros() { setFocusState(s => ({ ...s, pomodoros: s.pomodoros + 1, totalFocused: s.totalFocused + s.workMins })); }
+
+      // Local timer state (resets on tab switch — acceptable)
+      const [secondsLeft, setSecondsLeft] = React.useState(workMins * 60);
+      const [totalSeconds, setTotalSeconds] = React.useState(workMins * 60);
+      const intervalRef = React.useRef(null);
+
+      // Sync timer when returning to tab
+      React.useEffect(() => {
+        if (phase === "setup" || phase === "done") {
+          setSecondsLeft(workMins * 60);
+          setTotalSeconds(workMins * 60);
+        }
+      }, [phase, workMins]);
+
+      function startWork() {
+        if (!topic.trim()) return;
+        const secs = workMins * 60;
+        setSecondsLeft(secs);
+        setTotalSeconds(secs);
+        setPhase("work");
+      }
+
+      function startBreak() {
+        const secs = BREAK_DURATION * 60;
+        setSecondsLeft(secs);
+        setTotalSeconds(secs);
+        setPhase("break");
+      }
+
+      function endSession() {
+        clearInterval(intervalRef.current);
+        setPhase("done");
+      }
+
+      function reset() {
+        clearInterval(intervalRef.current);
+        setFocusState({ phase: "setup", topic: "", workMins: 25, pomodoros: 0, totalFocused: 0 });
+        setSecondsLeft(25 * 60);
+        setTotalSeconds(25 * 60);
+      }
+
+      React.useEffect(() => {
+        if (phase !== "work" && phase !== "break") return;
+        intervalRef.current = setInterval(() => {
+          setSecondsLeft(s => {
+            if (s <= 1) {
+              clearInterval(intervalRef.current);
+              if (phase === "work") {
+                incPomodoros();
+                startBreak();
+              } else {
+                const secs = workMins * 60;
+                setSecondsLeft(secs);
+                setTotalSeconds(secs);
+                setPhase("work");
+              }
+              return 0;
+            }
+            return s - 1;
+          });
+        }, 1000);
+        return () => clearInterval(intervalRef.current);
+      }, [phase]);
+
+      function fmt(s) {
+        const m = Math.floor(s / 60);
+        const sec = s % 60;
+        return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+      }
+
+      const progress = totalSeconds > 0 ? ((totalSeconds - secondsLeft) / totalSeconds) * 100 : 0;
+
+      if (phase === "setup") return (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
+          <div className="focus-setup">
+            <h2>🎯 Start Focus Session</h2>
+            <p>Block distractions and enter deep work mode. Pomodoro timer included.</p>
+            <input className="focus-input" placeholder="What are you focusing on? e.g. AgentZ capstone, IBM Full Stack Module 3"
+              value={topic} onChange={e => setTopic(e.target.value)} onKeyDown={e => e.key === "Enter" && startWork()} />
+            <p style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "8px" }}>Session duration:</p>
+            <div className="focus-duration-row">
+              {WORK_DURATIONS.map(d => (
+                <button key={d} className={"duration-chip" + (workMins === d ? " active" : "")}
+                  onClick={() => { setWorkMins(d); setSecondsLeft(d * 60); setTotalSeconds(d * 60); }}>
+                  {d} min
+                </button>
+              ))}
+            </div>
+            <button className="btn btn-primary" style={{ width: "100%", padding: "12px", fontSize: "15px" }}
+              onClick={startWork} disabled={!topic.trim()}>
+              🚀 Start Focus Session
+            </button>
+            {pomodoros > 0 && (
+              <div style={{ marginTop: "16px", padding: "12px", background: "var(--card)", borderRadius: "8px", fontSize: "13px", color: "var(--muted)" }}>
+                Previous session: <strong style={{ color: "var(--gold)" }}>{pomodoros} pomodoros</strong> · <strong style={{ color: "var(--blue)" }}>{totalFocused} min</strong> focused
+                <button className="btn btn-ghost btn-sm" style={{ marginLeft: "12px" }} onClick={reset}>Reset</button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+
+      if (phase === "done") return (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
+          <div className="focus-summary">
+            <h2>✅ Session Complete!</h2>
+            <p style={{ fontSize: "13px", color: "var(--muted)", marginBottom: "24px" }}>"{topic}"</p>
+            <div className="focus-summary-grid">
+              <div className="focus-stat"><div className="val">{totalFocused}</div><div className="lbl">Min Focused</div></div>
+              <div className="focus-stat"><div className="val" style={{ color: "var(--gold)" }}>{pomodoros}</div><div className="lbl">Pomodoros</div></div>
+              <div className="focus-stat"><div className="val" style={{ color: "var(--green)" }}>+{pomodoros}</div><div className="lbl">Habit +</div></div>
+            </div>
+            <p style={{ fontSize: "12px", color: "var(--green)", marginBottom: "20px" }}>💪 Deep Work habit updated · Session logged</p>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => setPhase("setup")}>New Session</button>
+              <button className="btn btn-ghost" style={{ flex: 1 }} onClick={reset}>Reset All</button>
+            </div>
+          </div>
+        </div>
+      );
+
+      return (
+        <div className="focus-overlay">
+          <div className={"focus-mode-label " + (phase === "work" ? "work" : "break")}>
+            {phase === "work" ? "🎯 Deep Work" : "☕ Break Time"}
+          </div>
+          <div className="focus-title">{topic}</div>
+          <div className={"focus-timer" + (phase === "break" ? " break" : "")}>{fmt(secondsLeft)}</div>
+          <div className="focus-progress-wrap">
+            <div className={"focus-progress-bar " + (phase === "work" ? "work" : "break")} style={{ width: progress + "%" }} />
+          </div>
+          <div className="focus-pomodoros">
+            {[...Array(Math.max(4, pomodoros + 1))].map((_, i) => (
+              <div key={i} className={"pomo-dot" + (i < pomodoros ? " done" : "")} />
+            ))}
+            <span style={{ fontSize: "12px", color: "var(--muted)", marginLeft: "8px" }}>
+              {pomodoros} pomodoro{pomodoros !== 1 ? "s" : ""} done
+            </span>
+          </div>
+          <div className="focus-actions">
+            {phase === "work" && <button className="btn btn-ghost" onClick={startBreak}>☕ Take Break</button>}
+            {phase === "break" && (
+              <button className="btn btn-primary" onClick={() => {
+                const secs = workMins * 60; setSecondsLeft(secs); setTotalSeconds(secs); setPhase("work");
+              }}>▶ Back to Work</button>
+            )}
+            <button className="btn btn-red" onClick={endSession}>⏹ End Session</button>
+          </div>
+          <button className="btn btn-ghost" style={{ marginTop: "24px", fontSize: "12px", opacity: 0.6 }}
+            onClick={() => setTab("chat")}>
+            ← Back to Dashboard (timer keeps running)
+          </button>
+        </div>
+      );
+    }
+
+    // ── Opportunities Panel ───────────────────────────────────────────────────────
     function OpportunitiesPanel({ onToast }) {
       const [jobs, setJobs] = React.useState([]);
       const [filter, setFilter] = React.useState("All");
       const [loading, setLoading] = React.useState(false);
-
       React.useEffect(() => { loadJobs(); }, []);
-
       async function loadJobs() {
         setLoading(true);
         try {
           const res = await fetch("../dashboard_jobs.json");
           if (res.ok) { const d = await res.json(); setJobs(d); }
         } catch (e) {
-          // fallback mock
           setJobs([
             { job_id: "1", title: "React AI Developer", company: "HealthTech Inc", score: 82, matched_skills: ["React developer", "AI chatbot", "Node.js"], status: "new", location: "Remote" },
             { job_id: "2", title: "MERN Stack Developer", company: "StartupXYZ", score: 65, matched_skills: ["MERN stack", "MongoDB"], status: "new", location: "Remote" },
@@ -763,18 +1085,15 @@
         }
         setLoading(false);
       }
-
       function updateStatus(id, status) {
         setJobs(prev => prev.map(j => j.job_id === id ? { ...j, status } : j));
         onToast(status === "applied" ? "Marked as applied" : "Job ignored");
       }
-
       const filtered = jobs.filter(j => {
         if (filter === "High Match") return j.score >= 70;
         if (filter === "New") return j.status === "new";
         return true;
       });
-
       return (
         <div className="panel">
           <div className="panel-header">
@@ -791,48 +1110,32 @@
               ))}
             </div>
             {loading ? <div className="empty"><Loading /></div> :
-              filtered.length === 0 ? (
-                <div className="empty">
-                  <div className="icon">📭</div>
-                  No jobs found. Start ADK server and click Refresh.
-                </div>
-              ) : filtered.map(job => (
-                <div key={job.job_id} className="job-card">
-                  <div className="job-card-top">
-                    <div>
-                      <div className="job-title">{job.title}</div>
-                      <div className="job-company">{job.company} · {job.location}</div>
+              filtered.length === 0 ? <div className="empty"><div className="icon">📭</div>No jobs found. Start ADK server and click Refresh.</div> :
+                filtered.map(job => (
+                  <div key={job.job_id} className="job-card">
+                    <div className="job-card-top">
+                      <div><div className="job-title">{job.title}</div><div className="job-company">{job.company} · {job.location}</div></div>
+                      <ScoreBadge score={job.score} />
                     </div>
-                    <ScoreBadge score={job.score} />
-                  </div>
-                  {job.matched_skills && job.matched_skills.length > 0 && (
-                    <div className="job-skills">
-                      {job.matched_skills.map(s => <span key={s} className="skill-chip">{s}</span>)}
+                    {job.matched_skills?.length > 0 && <div className="job-skills">{job.matched_skills.map(s => <span key={s} className="skill-chip">{s}</span>)}</div>}
+                    <div className="job-actions">
+                      <button className="btn btn-green btn-sm" onClick={() => updateStatus(job.job_id, "applied")}>✓ Applied</button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => updateStatus(job.job_id, "ignored")}>Ignore</button>
+                      {job.apply_link && <a href={job.apply_link} target="_blank" rel="noreferrer"><button className="btn btn-ghost btn-sm">Open ↗</button></a>}
                     </div>
-                  )}
-                  <div className="job-actions">
-                    <button className="btn btn-green btn-sm" onClick={() => updateStatus(job.job_id, "applied")}>✓ Applied</button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => updateStatus(job.job_id, "ignored")}>Ignore</button>
-                    {job.apply_link && <a href={job.apply_link} target="_blank" rel="noreferrer"><button className="btn btn-ghost btn-sm">Open ↗</button></a>}
                   </div>
-                </div>
-              ))}
+                ))}
           </div>
         </div>
       );
     }
 
     // ── Chat Panel ────────────────────────────────────────────────────────────────
-
     function ChatPanel({ onProposal, messages, setMessages }) {
       const [input, setInput] = React.useState("");
       const [loading, setLoading] = React.useState(false);
       const bottomRef = React.useRef(null);
-
-      React.useEffect(() => {
-        if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: "smooth" });
-      }, [messages]);
-
+      React.useEffect(() => { if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: "smooth" }); }, [messages]);
       async function send() {
         const text = input.trim();
         if (!text || loading) return;
@@ -842,20 +1145,15 @@
         try {
           const reply = await callAgent(text);
           setMessages(prev => [...prev, { role: "agent", text: reply }]);
-          // detect proposal in reply
-          if (reply.includes("PROPOSAL READY FOR REVIEW") ||
-              (reply.includes("proposal") && reply.includes("score") && reply.includes("review"))) {
+          if (reply.includes("PROPOSAL READY FOR REVIEW") || (reply.includes("proposal") && reply.includes("score") && reply.includes("review"))) {
             onProposal({ proposal: reply, status: "pending_review", job_description: text });
-
           }
         } catch (e) {
           setMessages(prev => [...prev, { role: "agent", text: "⚠️ Could not reach AgentZ. Make sure the ADK server is running at " + ADK_BASE }]);
         }
         setLoading(false);
       }
-
       function onKey(e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }
-
       return (
         <div className="panel">
           <div className="panel-header">
@@ -870,22 +1168,12 @@
                   {m.text}
                 </div>
               ))}
-              {loading && (
-                <div className="chat-bubble agent">
-                  <div className="chat-agent-label">AgentZ</div>
-                  <Loading />
-                </div>
-              )}
+              {loading && <div className="chat-bubble agent"><div className="chat-agent-label">AgentZ</div><Loading /></div>}
               <div ref={bottomRef} />
             </div>
             <div className="chat-input-row">
-              <input
-                className="chat-input"
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={onKey}
-                placeholder='Try: "Score this job: React developer for medical AI app..."'
-              />
+              <input className="chat-input" value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKey}
+                placeholder='Try: "Score this job...", "morning briefing", "schedule meeting tomorrow 3pm"' />
               <button className="btn btn-primary" onClick={send} disabled={loading}>Send</button>
             </div>
           </div>
@@ -894,32 +1182,21 @@
     }
 
     // ── Email Triage Panel ────────────────────────────────────────────────────────
-
     function EmailTriagePanel({ onToast }) {
       const [input, setInput] = React.useState("New order received|order@fiverr.com\nPayment of $150|payments@paypal.com\n50% off tools|deals@newsletter.com\nProject update needed|client@healthclinic.com");
       const [results, setResults] = React.useState([]);
       const [loading, setLoading] = React.useState(false);
-
       async function triage() {
         setLoading(true);
         const emails = input.trim().split("\n").filter(Boolean).join(", ");
         try {
           const reply = await callAgent("Triage these emails: " + emails);
-          // try parse JSON from reply
           const match = reply.match(/\[[\s\S]*\]/);
-          if (match) {
-            setResults(JSON.parse(match[0]));
-          } else {
-            // local fallback
-            setResults(localTriage(emails));
-          }
-        } catch (e) {
-          setResults(localTriage(emails));
-        }
+          if (match) { setResults(JSON.parse(match[0])); } else { setResults(localTriage(emails)); }
+        } catch (e) { setResults(localTriage(emails)); }
         setLoading(false);
         onToast("Emails triaged");
       }
-
       function localTriage(emails) {
         return emails.split(", ").map(e => {
           const [subject = "", sender = ""] = e.split("|").map(s => s.trim().toLowerCase());
@@ -930,14 +1207,10 @@
           return { email: e, category, reason };
         });
       }
-
       const chipClass = { CLIENT: "chip-CLIENT", PAYMENT: "chip-PAYMENT", OPPORTUNITY: "chip-OPPORTUNITY", IGNORE: "chip-IGNORE" };
-
       return (
         <div className="panel">
-          <div className="panel-header">
-            <span className="panel-title">📧 Email Triage</span>
-          </div>
+          <div className="panel-header"><span className="panel-title">📧 Email Triage</span></div>
           <div className="panel-body">
             <p style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "10px" }}>One email per line: <code style={{ color: "var(--blue)" }}>Subject|sender@email.com</code></p>
             <textarea className="textarea" value={input} onChange={e => setInput(e.target.value)} rows={4} />
@@ -963,117 +1236,58 @@
     }
 
     // ── Morning Briefing Panel ────────────────────────────────────────────────────
-
     function BriefingPanel({ onToast }) {
       const [briefing, setBriefing] = React.useState(null);
       const [loading, setLoading] = React.useState(false);
-
       async function getBriefing() {
         setLoading(true);
         try {
           const reply = await callAgent("Give me my morning briefing");
           parseBriefing(reply);
         } catch (e) {
-          // load from lmos_data.json directly
           try {
             const res = await fetch("../context/lmos_data.json");
             const data = await res.json();
-            setBriefing({
-              goal: data.goals[0]?.title + " by " + data.goals[0]?.deadline,
-              surplus: data.finances?.monthly_surplus_pkr?.toLocaleString() + " PKR",
-              habit: data.habits[0]?.name + " — Day " + data.habits[0]?.streak + " of " + data.habits[0]?.target_days,
-              deadlines: "No deadlines today",
-              jobs: "—",
-              raw: null,
-            });
-          } catch (e2) { setBriefing({ raw: "Could not load briefing. Start the ADK server." }); }
+            setBriefing({ goal: data.goals[0]?.title + " by " + data.goals[0]?.deadline, surplus: data.finances?.monthly_surplus_pkr?.toLocaleString() + " PKR", habit: data.habits[0]?.name + " — Day " + data.habits[0]?.streak + " of " + data.habits[0]?.target_days, deadlines: "No deadlines today", jobs: "—", raw: null });
+          } catch (e2) { setBriefing({ raw: "Could not load briefing." }); }
         }
         setLoading(false);
         onToast("Briefing loaded");
       }
-
       function parseBriefing(text) {
-        const get = (label) => {
-          const match = text.match(new RegExp(label + "[:\\s]+(.+)"));
-          return match ? match[1].trim() : "—";
-        };
-        setBriefing({
-          goal: get("Top Goal"),
-          surplus: get("Monthly Surplus"),
-          habit: get("Active Habit"),
-          deadlines: get("Deadlines"),
-          jobs: text.match(/(\d+ new jobs|\d+ high-quality)/i)?.[0] || "—",
-          raw: text,
-        });
+        const get = (label) => { const m = text.match(new RegExp(label + "[:\\s]+(.+)")); return m ? m[1].trim() : "—"; };
+        setBriefing({ goal: get("Top Goal"), surplus: get("Monthly Surplus"), habit: get("Active Habit"), deadlines: get("Deadlines"), jobs: text.match(/(\d+ new jobs|\d+ high-quality)/i)?.[0] || "—", raw: text });
       }
-
       return (
         <div className="panel">
           <div className="panel-header">
             <span className="panel-title">🌅 Morning Briefing</span>
-            <button className="btn btn-primary btn-sm" onClick={getBriefing} disabled={loading}>
-              {loading ? <Loading /> : "Get Briefing"}
-            </button>
+            <button className="btn btn-primary btn-sm" onClick={getBriefing} disabled={loading}>{loading ? <Loading /> : "Get Briefing"}</button>
           </div>
           <div className="panel-body">
-            {!briefing ? (
-              <div className="empty">
-                <div className="icon">☀️</div>
-                Click "Get Briefing" to start your day
-              </div>
-            ) : briefing.raw && !briefing.goal ? (
-              <div style={{ fontSize: "13px", color: "var(--muted)", whiteSpace: "pre-wrap" }}>{briefing.raw}</div>
-            ) : (
-              <div className="briefing-grid">
-                <div className="briefing-card">
-                  <div className="icon">🎯</div>
-                  <div className="label">Top Goal</div>
-                  <div className="value" style={{ fontSize: "12px" }}>{briefing.goal}</div>
+            {!briefing ? <div className="empty"><div className="icon">☀️</div>Click "Get Briefing" to start your day</div> :
+              briefing.raw && !briefing.goal ? <div style={{ fontSize: "13px", color: "var(--muted)", whiteSpace: "pre-wrap" }}>{briefing.raw}</div> : (
+                <div className="briefing-grid">
+                  <div className="briefing-card"><div className="icon">🎯</div><div className="label">Top Goal</div><div className="value" style={{ fontSize: "12px" }}>{briefing.goal}</div></div>
+                  <div className="briefing-card"><div className="icon">💰</div><div className="label">Monthly Surplus</div><div className="value">{briefing.surplus}</div></div>
+                  <div className="briefing-card"><div className="icon">💪</div><div className="label">Active Habit</div><div className="value" style={{ fontSize: "12px" }}>{briefing.habit}</div></div>
+                  <div className="briefing-card"><div className="icon">⏰</div><div className="label">Deadlines</div><div className="value" style={{ fontSize: "12px" }}>{briefing.deadlines}</div></div>
+                  {briefing.jobs !== "—" && <div className="briefing-card" style={{ gridColumn: "span 2" }}><div className="icon">💼</div><div className="label">New Jobs</div><div className="value">{briefing.jobs}</div></div>}
                 </div>
-                <div className="briefing-card">
-                  <div className="icon">💰</div>
-                  <div className="label">Monthly Surplus</div>
-                  <div className="value">{briefing.surplus}</div>
-                </div>
-                <div className="briefing-card">
-                  <div className="icon">💪</div>
-                  <div className="label">Active Habit</div>
-                  <div className="value" style={{ fontSize: "12px" }}>{briefing.habit}</div>
-                </div>
-                <div className="briefing-card">
-                  <div className="icon">⏰</div>
-                  <div className="label">Deadlines</div>
-                  <div className="value" style={{ fontSize: "12px" }}>{briefing.deadlines}</div>
-                </div>
-                {briefing.jobs !== "—" && (
-                  <div className="briefing-card" style={{ gridColumn: "span 2" }}>
-                    <div className="icon">💼</div>
-                    <div className="label">New Jobs</div>
-                    <div className="value">{briefing.jobs}</div>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
           </div>
         </div>
       );
     }
 
     // ── Proposal Review Panel ─────────────────────────────────────────────────────
-
     function ProposalPanel({ proposals, onApprove, onToast }) {
       if (proposals.length === 0) return (
         <div className="panel">
           <div className="panel-header"><span className="panel-title">📋 Proposal Review</span></div>
-          <div className="panel-body">
-            <div className="empty">
-              <div className="icon">📝</div>
-              No proposals yet. Score a job in the chat to generate one.
-            </div>
-          </div>
+          <div className="panel-body"><div className="empty"><div className="icon">📝</div>No proposals yet. Score a job in the chat to generate one.</div></div>
         </div>
       );
-
       return (
         <div className="panel">
           <div className="panel-header">
@@ -1094,9 +1308,7 @@
                     <button className="btn btn-ghost btn-sm" onClick={() => navigator.clipboard.writeText(p.proposal).then(() => onToast("Copied to clipboard"))}>Copy</button>
                   </div>
                 )}
-                {p.status === "approved" && (
-                  <div style={{ fontSize: "12px", color: "var(--green)", marginTop: "8px" }}>✓ Approved — copy and paste manually to Fiverr/Upwork</div>
-                )}
+                {p.status === "approved" && <div style={{ fontSize: "12px", color: "var(--green)", marginTop: "8px" }}>✓ Approved — copy and paste manually to Fiverr/Upwork</div>}
               </div>
             ))}
           </div>
@@ -1105,7 +1317,6 @@
     }
 
     // ── App ───────────────────────────────────────────────────────────────────────
-
     function App() {
       const [tab, setTab] = React.useState("opportunities");
       const [proposals, setProposals] = React.useState([]);
@@ -1113,38 +1324,29 @@
       const [jobCount, setJobCount] = React.useState(0);
       const [highCount, setHighCount] = React.useState(0);
       const [chatMessages, setChatMessages] = React.useState([
-        { role: "agent", text: "Hi Zohaib! I'm AgentZ. Ask me to score a job, fetch opportunities, triage emails, or give you a morning briefing." }
+        { role: "agent", text: "Hi Zohaib! I'm AgentZ. Ask me to score a job, fetch opportunities, triage emails, schedule a meeting, or give you a morning briefing." }
       ]);
+      const [focusState, setFocusState] = React.useState({
+        phase: "setup", topic: "", workMins: 25, pomodoros: 0, totalFocused: 0
+      });
 
       React.useEffect(() => {
-        fetch("../dashboard_jobs.json")
-          .then(r => r.json())
-          .then(jobs => {
-            setJobCount(jobs.length);
-            setHighCount(jobs.filter(j => j.score >= 70).length);
-          })
-          .catch(() => { });
+        fetch("../dashboard_jobs.json").then(r => r.json()).then(jobs => {
+          setJobCount(jobs.length);
+          setHighCount(jobs.filter(j => j.score >= 70).length);
+        }).catch(() => { });
       }, []);
 
-      function onToast(msg) {
-        setToast(msg);
-        setTimeout(() => setToast(null), 3100);
-      }
-
-      function addProposal(p) {
-        setProposals(prev => [...prev, p]);
-        setTab("proposals");
-        onToast("New proposal ready for review");
-      }
-
-      function approveProposal(i) {
-        setProposals(prev => prev.map((p, idx) => idx === i ? { ...p, status: "approved" } : p));
-      }
+      function onToast(msg) { setToast(msg); setTimeout(() => setToast(null), 3100); }
+      function addProposal(p) { setProposals(prev => [...prev, p]); setTab("proposals"); onToast("New proposal ready for review"); }
+      function approveProposal(i) { setProposals(prev => prev.map((p, idx) => idx === i ? { ...p, status: "approved" } : p)); }
 
       const now = new Date();
       const hour = now.getHours();
       const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
       const dateStr = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+
+      const isFocusActive = focusState.phase === "work" || focusState.phase === "break";
 
       const tabs = [
         { id: "opportunities", label: "🎯 Opportunities" },
@@ -1152,50 +1354,36 @@
         { id: "emails", label: "📧 Email Triage" },
         { id: "briefing", label: "🌅 Briefing" },
         { id: "proposals", label: `📋 Proposals ${proposals.filter(p => p.status === "pending_review").length > 0 ? "●" : ""}` },
+        { id: "focus", label: `⏱️ Focus${isFocusActive ? " 🔴" : ""}` },
       ];
 
       return (
         <div>
-          {/* Header */}
           <header className="header">
             <div className="header-left">
               <div className="logo">Agent<span>Z</span></div>
               <div className="header-greeting">{greeting}, Zohaib · {dateStr}</div>
             </div>
             <div className="header-stats">
-              <div className="stat-chip">
-                <div className="val">{jobCount}</div>
-                <div className="lbl">Total Jobs</div>
-              </div>
-              <div className="stat-chip">
-                <div className="val" style={{ color: "var(--green)" }}>{highCount}</div>
-                <div className="lbl">High Match</div>
-              </div>
-              <div className="stat-chip">
-                <div className="val" style={{ color: "var(--gold)" }}>{proposals.length}</div>
-                <div className="lbl">Proposals</div>
-              </div>
+              <div className="stat-chip"><div className="val">{jobCount}</div><div className="lbl">Total Jobs</div></div>
+              <div className="stat-chip"><div className="val" style={{ color: "var(--green)" }}>{highCount}</div><div className="lbl">High Match</div></div>
+              <div className="stat-chip"><div className="val" style={{ color: "var(--gold)" }}>{proposals.length}</div><div className="lbl">Proposals</div></div>
+              {isFocusActive && <div className="stat-chip"><div className="val" style={{ color: "var(--red)" }}>🔴</div><div className="lbl">Focus On</div></div>}
             </div>
           </header>
-
-          {/* Nav */}
           <nav className="nav">
             {tabs.map(t => (
-              <button key={t.id} className={"nav-tab" + (tab === t.id ? " active" : "")} onClick={() => setTab(t.id)}>
-                {t.label}
-              </button>
+              <button key={t.id} className={"nav-tab" + (tab === t.id ? " active" : "") + (t.id === "focus" && isFocusActive ? " focus-active" : "")} onClick={() => setTab(t.id)}>{t.label}</button>
             ))}
           </nav>
-
-          {/* Main */}
           <main className="main">
             {tab === "opportunities" && <OpportunitiesPanel onToast={onToast} />}
             {tab === "chat" && <ChatPanel onProposal={addProposal} messages={chatMessages} setMessages={setChatMessages} />}
             {tab === "emails" && <EmailTriagePanel onToast={onToast} />}
             {tab === "briefing" && <BriefingPanel onToast={onToast} />}
             {tab === "proposals" && <ProposalPanel proposals={proposals} onApprove={approveProposal} onToast={onToast} />}
+            {tab === "focus" && <FocusMode focusState={focusState} setFocusState={setFocusState} setTab={setTab} />}
           </main>
-
           {toast && <Toast msg={toast} onClose={() => setToast(null)} />}
         </div>
       );

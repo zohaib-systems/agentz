@@ -18,6 +18,7 @@ import os
 import pickle
 import re
 import time
+import traceback
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -27,8 +28,45 @@ from dotenv import load_dotenv
 from groq import Groq
 from google.adk.agents import Agent
 from google.adk.apps import App
-from google.adk.models.lite_llm import LiteLlm
+from google.adk.models.lite_llm import LiteLlm, LiteLLMClient
+from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset
+from google.adk.tools.mcp_tool.mcp_session_manager import SseServerParams
 from google.adk.sessions import InMemorySessionService
+
+# Patch LiteLLMClient to remove unsupported reasoning fields on Groq assistant messages.
+_orig_acompletion = LiteLLMClient.acompletion
+_orig_completion = LiteLLMClient.completion
+
+
+def _sanitize_messages(messages):
+    if not messages:
+        return messages
+    for msg in messages:
+        if isinstance(msg, dict):
+            if msg.get("role") in ("assistant", "model"):
+                msg.pop("reasoning_content", None)
+                msg.pop("reasoning", None)
+        elif hasattr(msg, "get") and msg.get("role") in ("assistant", "model"):
+            try:
+                msg.pop("reasoning_content", None)
+                msg.pop("reasoning", None)
+            except Exception:
+                pass
+    return messages
+
+
+async def _custom_acompletion(self, model, messages, tools, **kwargs):
+    messages = _sanitize_messages(messages)
+    return await _orig_acompletion(self, model, messages, tools, **kwargs)
+
+
+def _custom_completion(self, model, messages, tools, stream=False, **kwargs):
+    messages = _sanitize_messages(messages)
+    return _orig_completion(self, model, messages, tools, stream=stream, **kwargs)
+
+
+LiteLLMClient.acompletion = _custom_acompletion
+LiteLLMClient.completion = _custom_completion
 from google.adk.tools.tool_context import ToolContext
 from rapidfuzz import fuzz
 from google.adk.models import Gemini
@@ -53,12 +91,19 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 DASHBOARD_FILE = "dashboard_jobs.json"
 FETCH_INTERVAL_HOURS = int(os.getenv("FETCH_INTERVAL_HOURS", "4"))
 FUZZY_THRESHOLD = 75
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 
 # Google Calendar
-SCOPES = ["https://www.googleapis.com/auth/calendar"]
-CALENDAR_TOKEN = "token.pickle"
-CALENDAR_CREDS = "credentials.json"
+SCOPES = [
+    "https://www.googleapis.com/auth/calendar",
+    "https://www.googleapis.com/auth/gmail.readonly",
+]
+
+CALENDAR_CREDS = str(Path(__file__).parent.parent / "credentials.json")
+CALENDAR_TOKEN = str(Path(__file__).parent.parent / "token.pickle")
+
+# Gmail MCP — local server (run run_gmail_mcp.bat first)
+GMAIL_MCP_SSE_URL = "http://localhost:8001/sse"
 
 # ---------------------------------------------------------------------------
 # Groq client (for proposal drafting)
@@ -218,6 +263,22 @@ def _get_calendar_service():
         with open(CALENDAR_TOKEN, "wb") as f:
             pickle.dump(creds, f)
     return build("calendar", "v3", credentials=creds)
+
+
+def _get_gmail_mcp_toolset():
+    """Return an MCPToolset connected to the local Gmail MCP server, or None on failure.
+
+    Connects to the SSE endpoint exposed by mcp_servers/gmail_mcp.py.
+    Start that server first with run_gmail_mcp.bat before launching AgentZ.
+    Auth is handled inside gmail_mcp.py via the shared token.pickle.
+    """
+    try:
+        toolset = MCPToolset(connection_params=SseServerParams(url=GMAIL_MCP_SSE_URL))
+        print("[Gmail MCP] Toolset initialised — connecting to", GMAIL_MCP_SSE_URL)
+        return toolset
+    except Exception as exc:
+        print(f"[Gmail MCP] Failed to initialise toolset: {exc}")
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -595,6 +656,82 @@ def get_dashboard_summary(tool_context: ToolContext) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Life-Sync Tools
+# ---------------------------------------------------------------------------
+
+LMOS_DATA_FILE = "context/lmos_data.json"
+
+
+def log_study_session(
+    skill: str,
+    duration_minutes: int,
+    tool_context: ToolContext,
+) -> str:
+    """Log a completed study or focus session to lmos_data.json.
+
+    Args:
+        skill: What was studied e.g. "IBM Full Stack", "ADK agents"
+        duration_minutes: How long the session lasted
+        tool_context: Tool context
+    """
+    try:
+        with open(LMOS_DATA_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception as e:
+        return f"❌ Could not read {LMOS_DATA_FILE}: {e}"
+
+    # Append session record
+    now = datetime.now()
+    session_entry = {
+        "skill": skill,
+        "duration_minutes": duration_minutes,
+        "date": now.strftime("%Y-%m-%d"),
+        "timestamp": now.isoformat(),
+    }
+    sessions: list[dict] = data.setdefault("study_sessions", [])
+    sessions.append(session_entry)
+
+    # Increment the first active habit streak
+    new_streak = 0
+    for habit in data.get("habits", []):
+        if habit.get("status") == "active":
+            habit["streak"] = habit.get("streak", 0) + 1
+            new_streak = habit["streak"]
+            break
+
+    # Calculate total minutes for this skill across all sessions
+    total_mins = sum(
+        s.get("duration_minutes", 0)
+        for s in sessions
+        if s.get("skill", "").lower() == skill.lower()
+    )
+
+    # Persist
+    try:
+        with open(LMOS_DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        return f"❌ Could not save {LMOS_DATA_FILE}: {e}"
+
+    # Track in session state
+    today = now.strftime("%Y-%m-%d")
+    today_sessions: list[dict] = list(
+        tool_context.state.get("study_sessions_today", [])
+    )
+    today_sessions.append(
+        {"skill": skill, "duration_minutes": duration_minutes, "date": today}
+    )
+    tool_context.state["study_sessions_today"] = today_sessions
+
+    hours, mins = divmod(total_mins, 60)
+    return (
+        f"📚 Session logged: {skill} — {duration_minutes} min\n"
+        f"🔥 Habit streak: {new_streak} days\n"
+        f"📊 Total {skill} time: {total_mins} min ({hours}h {mins}m)"
+    )
+
+
+# ---------------------------------------------------------------------------
 # Calendar Tools
 # ---------------------------------------------------------------------------
 
@@ -618,9 +755,25 @@ def schedule_event(
         tool_context: Tool context
     Returns: Confirmation string with event details
     """
+    print(
+        f"\n[DEBUG] Tool execution triggered: Title='{title}', Date='{date}', Time='{time}', Duration={duration_minutes}"
+    )
+
     try:
         service = _get_calendar_service()
+        import pytz
+
+        karachi = pytz.timezone("Asia/Karachi")
+
+        # Fallback handling for blank or poorly extracted dates (e.g. if LLM passes 'today' or empty)
+        if not date or not re.match(r"^\d{4}-\d{2}-\d{2}$", str(date)):
+            date = datetime.now(karachi).strftime("%Y-%m-%d")
+            print(
+                f"[DEBUG] Raw extraction fallback. Using today's local calculated date: {date}"
+            )
+
         start_dt = datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M")
+        start_dt = karachi.localize(start_dt)
         end_dt = start_dt + timedelta(minutes=duration_minutes)
 
         event = {
@@ -634,7 +787,13 @@ def schedule_event(
             },
         }
 
+        print(
+            "[DEBUG] Dispatching insert query request payloads payload to primary Google Calendar API..."
+        )
         created = service.events().insert(calendarId="primary", body=event).execute()
+        print(
+            f"[DEBUG] Google Cloud API Accepted Request! Link created: {created.get('htmlLink')}\n"
+        )
 
         if "scheduled_events" not in tool_context.state:
             tool_context.state["scheduled_events"] = []
@@ -656,6 +815,10 @@ def schedule_event(
             f"🔔 Reminder set for 30 min before"
         )
     except Exception as e:
+        print(
+            "[ERROR] Failed runtime execution during Google Calendar insertion block!"
+        )
+        traceback.print_exc()
         return f"❌ Calendar error: {e}. Make sure credentials.json exists."
 
 
@@ -666,15 +829,19 @@ def get_upcoming_events(tool_context: ToolContext) -> str:
     """
     try:
         service = _get_calendar_service()
-        now = datetime.now(timezone.utc)
-        week_later = now + timedelta(days=7)
+        import pytz
+
+        karachi = pytz.timezone("Asia/Karachi")
+        now = datetime.now(karachi)
+        timeMin = now.isoformat()
+        timeMax = (now + timedelta(days=7)).isoformat()
 
         events_result = (
             service.events()
             .list(
                 calendarId="primary",
-                timeMin=now.isoformat(),
-                timeMax=week_later.isoformat(),
+                timeMin=timeMin,
+                timeMax=timeMax,
                 singleEvents=True,
                 orderBy="startTime",
             )
@@ -742,11 +909,14 @@ def check_focus_schedule(tool_context: ToolContext) -> str:
 
         return "✅ No upcoming events. You're free to work."
     except Exception as e:
-        # Fallback to session state
-        scheduled = tool_context.state.get("scheduled_events", [])
-        if scheduled:
-            next_ev = scheduled[-1]
-            return f"📅 (offline) Next session event: {next_ev.get('title')} on {next_ev.get('date')} at {next_ev.get('time')}. (Calendar API unavailable: {e})"
+        # Fallback to session state safely
+        try:
+            scheduled = tool_context.state.get("scheduled_events", [])
+            if scheduled:
+                next_ev = scheduled[-1]
+                return f"📅 (offline) Next session event: {next_ev.get('title')} on {next_ev.get('date')} at {next_ev.get('time')}. (Calendar API unavailable: {e})"
+        except Exception:
+            pass
         return f"✅ No upcoming events. (Calendar API unavailable: {e})"
 
 
@@ -764,7 +934,6 @@ def _start_scheduler() -> BackgroundScheduler:
         hours=FETCH_INTERVAL_HOURS,
         id="auto_fetch_jobs",
         replace_existing=True,
-        # next_run_time=datetime.utcnow(),  # uncomment for production
     )
     scheduler.start()
     print(f"⏰ Scheduler started — auto-fetching every {FETCH_INTERVAL_HOURS}h.")
@@ -775,10 +944,6 @@ def _start_scheduler() -> BackgroundScheduler:
 # Agents — all using Groq via LiteLlm
 # ---------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
-# Agents — single root agent with all tools (Groq compatible)
-# ---------------------------------------------------------------------------
-
 scheduler_agent = Agent(
     name="scheduler_agent",
     model=LiteLlm(model=f"groq/{GROQ_MODEL}"),
@@ -786,14 +951,59 @@ scheduler_agent = Agent(
         "You manage Zohaib's Google Calendar. "
         "For scheduling requests: extract title, date, time, duration from "
         "the user's message and call schedule_event. "
+        "If the user did not say a specific date but mentioned a time (like 3pm), "
+        "leave the date empty or use today's date context. "
         "For viewing schedule: call get_upcoming_events. "
         "For focus check: call check_focus_schedule. "
         "Always confirm the event details before scheduling. "
         "Parse natural language dates: 'tomorrow' = next day, "
         "'next Monday' = calculate the date. "
         "Return dates in YYYY-MM-DD format and times in HH:MM 24hr format."
+        "Call each tool ONCE only. Do not retry if the tool returns a result. "
+        "If schedule_event returns a confirmation, stop immediately."
     ),
     tools=[schedule_event, get_upcoming_events, check_focus_schedule],
+)
+
+
+# ---------------------------------------------------------------------------
+# Life-Sync sub-agent
+# ---------------------------------------------------------------------------
+
+life_sync_agent = Agent(
+    name="life_sync_agent",
+    model=LiteLlm(model=f"groq/{GROQ_MODEL}"),
+    instruction=(
+        "You help Zohaib track his learning and personal growth. "
+        "When a study or focus session is reported, extract the skill name and "
+        "duration in minutes from the user's message, then call log_study_session. "
+        "Confirm the logged details and celebrate progress."
+    ),
+    tools=[log_study_session],
+)
+
+
+# ---------------------------------------------------------------------------
+# Gmail MCP sub-agent (initialised at module load; gracefully skipped if
+# credentials are unavailable at startup)
+# ---------------------------------------------------------------------------
+
+_gmail_mcp_toolset = _get_gmail_mcp_toolset()
+
+_email_mcp_agent_tools = [_gmail_mcp_toolset] if _gmail_mcp_toolset is not None else []
+
+email_mcp_agent = Agent(
+    name="email_mcp_agent",
+    model=LiteLlm(model=f"groq/{GROQ_MODEL}"),
+    instruction=(
+        "You search and read real Gmail emails using the Gmail MCP server. "
+        "Find unread emails, search by sender/subject, summarise threads, "
+        "and identify which emails are from clients, payment platforms "
+        "(Fiverr/Upwork/PayPal), or job opportunities. "
+        "You can draft replies but NEVER send emails automatically — "
+        "always require human approval."
+    ),
+    tools=_email_mcp_agent_tools,
 )
 
 
@@ -801,6 +1011,7 @@ root_agent = Agent(
     name="root_agent",
     model=LiteLlm(model=f"groq/{GROQ_MODEL}"),
     instruction=(
+        "STRICT ROUTING RULES — follow exactly:\n"
         "You are AgentZ, a personal concierge for Zohaib Ali — a MERN and AI "
         "developer building toward financial independence by 2030.\n\n"
         "You have these tools available:\n"
@@ -811,15 +1022,21 @@ root_agent = Agent(
         "- auto_fetch_jobs: fetch and score jobs from Google Jobs via SerpAPI\n"
         "- get_dashboard_summary: show current dashboard job summary\n\n"
         "Sub-agents:\n"
-        "- scheduler_agent: manages Google Calendar\n\n"
+        "- scheduler_agent: manages Google Calendar\n"
+        "- email_mcp_agent: reads real Gmail data via Gmail MCP\n"
+        "- life_sync_agent: logs study sessions and tracks habits\n\n"
         "Rules:\n"
         "- Job description shared → call score_opportunity, then draft_proposal if score >= 50\n"
-        "- 'morning briefing' or 'daily update' → call get_morning_briefing\n"
-        "- Emails shared → call triage_emails\n"
+        "- 'morning briefing', 'daily update', 'give me my briefing', 'good morning' → ALWAYS use get_morning_briefing tool, NEVER check_focus_schedule\n"
+        "- get_morning_briefing is ONLY for life goals, finances, habits, deadlines — NOT calendar\n"
+        "- check_focus_schedule is ONLY when user asks about next 30 minutes or focus mode\n"
+        "- Emails shared as text → call triage_emails (categorises pasted email text)\n"
+        "- 'check my gmail', 'read my emails', 'unread emails', 'search gmail' → email_mcp_agent (real Gmail data via MCP)\n"
         "- 'fetch jobs' or 'scan jobs' → call auto_fetch_jobs\n"
         "- 'dashboard' or 'show jobs' → call get_dashboard_summary\n"
         "- 'schedule', 'meeting', 'remind me', 'add to calendar', "
         "'upcoming events', \"what's on my calendar\" → scheduler_agent\n"
+        "- 'log study session', 'I just studied', 'focus session done', 'studied for' → life_sync_agent\n"
         "- Never send proposals automatically. Always require human approval.\n"
         "- When draft_proposal tool returns text, return the COMPLETE tool output verbatim to the user. Do not summarize or paraphrase it.\n"
     ),
@@ -831,8 +1048,9 @@ root_agent = Agent(
         auto_fetch_jobs,
         get_dashboard_summary,
     ],
-    sub_agents=[scheduler_agent],
+    sub_agents=[scheduler_agent, life_sync_agent, email_mcp_agent],
 )
+
 # ---------------------------------------------------------------------------
 # App
 # ---------------------------------------------------------------------------

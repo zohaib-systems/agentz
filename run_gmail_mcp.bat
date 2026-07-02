@@ -1,0 +1,3 @@
+@echo off
+echo Starting Gmail MCP server on http://localhost:8001/sse ...
+uv run python mcp_servers/gmail_mcp.py
