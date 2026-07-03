@@ -974,12 +974,12 @@ life_sync_agent = Agent(
     name="life_sync_agent",
     model=LiteLlm(model=f"groq/{GROQ_MODEL}"),
     instruction=(
-        "You help Zohaib track his learning and personal growth. "
-        "When a study or focus session is reported, extract the skill name and "
-        "duration in minutes from the user's message, then call log_study_session. "
-        "Confirm the logged details and celebrate progress."
+        "Provide morning briefing and log study sessions from LM-OS data. "
+        "Call get_morning_briefing for briefings. "
+        "Call log_study_session when user reports a completed study session. "
+        "NEVER call check_focus_schedule for morning briefing requests."
     ),
-    tools=[log_study_session],
+    tools=[get_morning_briefing, log_study_session],
 )
 
 
@@ -1007,48 +1007,87 @@ email_mcp_agent = Agent(
 )
 
 
+# ---------------------------------------------------------------------------
+# New specialist sub-agents
+# ---------------------------------------------------------------------------
+
+opportunity_agent = Agent(
+    name="opportunity_agent",
+    model=LiteLlm(model=f"groq/{GROQ_MODEL}"),
+    instruction=(
+        "Score job descriptions against Zohaib's skillset. "
+        "Always call score_opportunity tool and return the full JSON result."
+    ),
+    tools=[score_opportunity],
+)
+
+proposal_agent = Agent(
+    name="proposal_agent",
+    model=LiteLlm(model=f"groq/{GROQ_MODEL}"),
+    instruction=(
+        "Draft freelance proposals in Zohaib's tone. "
+        "Always call draft_proposal tool. Return the COMPLETE tool output "
+        "verbatim. Never summarize. Never send automatically."
+    ),
+    tools=[draft_proposal],
+)
+
+email_triage_agent = Agent(
+    name="email_triage_agent",
+    model=LiteLlm(model=f"groq/{GROQ_MODEL}"),
+    instruction=(
+        "Categorise manually pasted emails as CLIENT/PAYMENT/OPPORTUNITY/IGNORE. "
+        "Always call triage_emails and return the full result."
+    ),
+    tools=[triage_emails],
+)
+
+fetch_agent = Agent(
+    name="fetch_agent",
+    model=LiteLlm(model=f"groq/{GROQ_MODEL}"),
+    instruction=(
+        "Fetch and score jobs from Google Jobs via SerpAPI. "
+"Call auto_fetch_jobs then get_dashboard_summary. "
+"Return ONLY the text output from auto_fetch_jobs verbatim. "
+"Do not reformat, summarize, or add any extra text. "
+"Call each tool ONCE only. Stop immediately after returning results."
+    ),
+    tools=[auto_fetch_jobs, get_dashboard_summary],
+)
+
+
 root_agent = Agent(
     name="root_agent",
     model=LiteLlm(model=f"groq/{GROQ_MODEL}"),
     instruction=(
-        "STRICT ROUTING RULES — follow exactly:\n"
+        "STRICT ROUTING — route to sub-agents ONLY, no direct tool calls.\n"
         "You are AgentZ, a personal concierge for Zohaib Ali — a MERN and AI "
         "developer building toward financial independence by 2030.\n\n"
-        "You have these tools available:\n"
-        "- score_opportunity: score a job description against Zohaib's skillset\n"
-        "- draft_proposal: draft a proposal for a scored job\n"
-        "- get_morning_briefing: get today's goals, finances, habits, deadlines\n"
-        "- triage_emails: categorise emails as CLIENT/PAYMENT/OPPORTUNITY/IGNORE\n"
-        "- auto_fetch_jobs: fetch and score jobs from Google Jobs via SerpAPI\n"
-        "- get_dashboard_summary: show current dashboard job summary\n\n"
-        "Sub-agents:\n"
-        "- scheduler_agent: manages Google Calendar\n"
-        "- email_mcp_agent: reads real Gmail data via Gmail MCP\n"
-        "- life_sync_agent: logs study sessions and tracks habits\n\n"
-        "Rules:\n"
-        "- Job description shared → call score_opportunity, then draft_proposal if score >= 50\n"
-        "- 'morning briefing', 'daily update', 'give me my briefing', 'good morning' → ALWAYS use get_morning_briefing tool, NEVER check_focus_schedule\n"
-        "- get_morning_briefing is ONLY for life goals, finances, habits, deadlines — NOT calendar\n"
-        "- check_focus_schedule is ONLY when user asks about next 30 minutes or focus mode\n"
-        "- Emails shared as text → call triage_emails (categorises pasted email text)\n"
-        "- 'check my gmail', 'read my emails', 'unread emails', 'search gmail' → email_mcp_agent (real Gmail data via MCP)\n"
-        "- 'fetch jobs' or 'scan jobs' → call auto_fetch_jobs\n"
-        "- 'dashboard' or 'show jobs' → call get_dashboard_summary\n"
-        "- 'schedule', 'meeting', 'remind me', 'add to calendar', "
-        "'upcoming events', \"what's on my calendar\" → scheduler_agent\n"
-        "- 'log study session', 'I just studied', 'focus session done', 'studied for' → life_sync_agent\n"
-        "- Never send proposals automatically. Always require human approval.\n"
-        "- When draft_proposal tool returns text, return the COMPLETE tool output verbatim to the user. Do not summarize or paraphrase it.\n"
+        "Routing rules:\n"
+        "- Job description pasted → opportunity_agent to score, "
+        "then proposal_agent if score >= 50\n"
+        "- 'morning briefing', 'daily update', 'give me my briefing' → "
+        "life_sync_agent (get_morning_briefing) NEVER check_focus_schedule\n"
+        "- get_morning_briefing is ONLY for goals/finances/habits/deadlines\n"
+        "- check_focus_schedule is ONLY for next 30 min focus queries\n"
+        "- Emails pasted manually → email_triage_agent\n"
+        "- 'fetch jobs', 'scan jobs', 'find jobs' → fetch_agent\n"
+        "- 'dashboard', 'show jobs' → fetch_agent (get_dashboard_summary)\n"
+        "- 'check gmail', 'unread emails', 'search gmail' → email_mcp_agent\n"
+        "- 'schedule', 'meeting', 'calendar', 'upcoming events' → scheduler_agent\n"
+        "- 'log study', 'I just studied', 'focus session done' → life_sync_agent\n"
+        "- Never send proposals automatically. Always require human approval."
     ),
-    tools=[
-        score_opportunity,
-        draft_proposal,
-        get_morning_briefing,
-        triage_emails,
-        auto_fetch_jobs,
-        get_dashboard_summary,
+    tools=[],
+    sub_agents=[
+        opportunity_agent,
+        proposal_agent,
+        life_sync_agent,
+        fetch_agent,
+        email_triage_agent,
+        scheduler_agent,
+        email_mcp_agent,
     ],
-    sub_agents=[scheduler_agent, life_sync_agent, email_mcp_agent],
 )
 
 # ---------------------------------------------------------------------------
