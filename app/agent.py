@@ -587,10 +587,10 @@ def get_morning_briefing(tool_context: ToolContext) -> str:
 def triage_emails(emails: str) -> str:
     """Categorise emails by importance. Accepts pipe-delimited or plain text."""
     results = []
-    
+
     # Split by comma or newline
     items = [e.strip() for e in re.split(r"[,\n]", emails) if e.strip()]
-    
+
     for item in items:
         if "|" in item:
             parts = item.split("|")
@@ -604,32 +604,68 @@ def triage_emails(emails: str) -> str:
         category = "IGNORE"
         reason = "Does not match any important category."
 
-        if any(w in subject or w in sender for w in 
-               ["invoice", "receipt", "payment", "paid", "transfer"]):
+        if any(
+            w in subject or w in sender
+            for w in ["invoice", "receipt", "payment", "paid", "transfer"]
+        ):
             category = "PAYMENT"
             reason = "Payment related."
-        elif any(w in sender for w in 
-                 ["fiverr", "upwork", "linkedin", "client", "healthclinic"]) or \
-             any(w in subject for w in 
-                 ["order", "inquiry", "job", "new gig", "request", "project", 
-                  "update", "revision", "delivery"]):
-            category = "OPPORTUNITY" if any(w in subject or w in sender for w in 
-                       ["order", "inquiry", "job", "new gig", "upwork", "fiverr", 
-                        "linkedin"]) else "CLIENT"
+        elif any(
+            w in sender
+            for w in ["fiverr", "upwork", "linkedin", "client", "healthclinic"]
+        ) or any(
+            w in subject
+            for w in [
+                "order",
+                "inquiry",
+                "job",
+                "new gig",
+                "request",
+                "project",
+                "update",
+                "revision",
+                "delivery",
+            ]
+        ):
+            category = (
+                "OPPORTUNITY"
+                if any(
+                    w in subject or w in sender
+                    for w in [
+                        "order",
+                        "inquiry",
+                        "job",
+                        "new gig",
+                        "upwork",
+                        "fiverr",
+                        "linkedin",
+                    ]
+                )
+                else "CLIENT"
+            )
             reason = "Opportunity or client related."
-        elif any(w in subject for w in 
-                 ["chess", "newsletter", "sale", "promo", "offer", "deal",
-                  "streak", "notification", "alert", "booked"]):
+        elif any(
+            w in subject
+            for w in [
+                "chess",
+                "newsletter",
+                "sale",
+                "promo",
+                "offer",
+                "deal",
+                "streak",
+                "notification",
+                "alert",
+                "booked",
+            ]
+        ):
             category = "IGNORE"
             reason = "Newsletter or notification."
 
-        results.append({
-            "email": item,
-            "category": category,
-            "reason": reason
-        })
+        results.append({"email": item, "category": category, "reason": reason})
 
     return json.dumps(results, indent=2)
+
 
 def get_dashboard_summary(tool_context: ToolContext) -> str:
     """Return a summary of current dashboard jobs by status and score."""
@@ -654,17 +690,17 @@ def get_dashboard_summary(tool_context: ToolContext) -> str:
 
     last_fetch = tool_context.state.get("last_fetch", "Not fetched this session")
 
-    return(
-    f"Dashboard Summary\n"
-    f"------------------\n"
-    f"Total jobs: {len(jobs)}\n"
-    f"  High match (>=70): {len(high)}\n"
-    f"  Mid match (50-69): {len(mid)}\n"
-    f"  Low match (<50): {len(low)}\n\n"
-    f"By status:\n"
-    + "\n".join(f"  {k}: {len(v)}" for k, v in by_status.items())
-    + f"\n\nTop 5 Jobs:\n{top_jobs}\n\n"
-    f"Last fetch: {last_fetch}"
+    return (
+        f"Dashboard Summary\n"
+        f"------------------\n"
+        f"Total jobs: {len(jobs)}\n"
+        f"  High match (>=70): {len(high)}\n"
+        f"  Mid match (50-69): {len(mid)}\n"
+        f"  Low match (<50): {len(low)}\n\n"
+        f"By status:\n"
+        + "\n".join(f"  {k}: {len(v)}" for k, v in by_status.items())
+        + f"\n\nTop 5 Jobs:\n{top_jobs}\n\n"
+        f"Last fetch: {last_fetch}"
     )
 
 
@@ -677,7 +713,7 @@ LMOS_DATA_FILE = "context/lmos_data.json"
 
 def log_study_session(
     skill: str,
-    duration_minutes: int,
+    duration_minutes: str,
     tool_context: ToolContext,
 ) -> str:
     """Log a completed study or focus session to lmos_data.json.
@@ -687,6 +723,7 @@ def log_study_session(
         duration_minutes: How long the session lasted
         tool_context: Tool context
     """
+    duration_minutes = int(duration_minutes)
     try:
         with open(LMOS_DATA_FILE, encoding="utf-8") as f:
             data = json.load(f)
@@ -738,9 +775,9 @@ def log_study_session(
 
     hours, mins = divmod(total_mins, 60)
     return (
-        f"📚 Session logged: {skill} — {duration_minutes} min\n"
-        f"🔥 Habit streak: {new_streak} days\n"
-        f" Total {skill} time: {total_mins} min ({hours}h {mins}m)"
+        f"Session logged: {skill} - {duration_minutes} min\n"
+        f"Habit streak: {new_streak} days\n"
+        f"Total {skill} time: {total_mins} min ({hours}h {mins}m)"
     )
 
 
@@ -1060,10 +1097,10 @@ fetch_agent = Agent(
     model=LiteLlm(model=f"groq/{GROQ_MODEL}"),
     instruction=(
         "Fetch and score jobs from Google Jobs via SerpAPI. "
-"Call auto_fetch_jobs then get_dashboard_summary. "
-"Return ONLY the text output from auto_fetch_jobs verbatim. "
-"Do not reformat, summarize, or add any extra text. "
-"Call each tool ONCE only. Stop immediately after returning results."
+        "Call auto_fetch_jobs then get_dashboard_summary. "
+        "Return ONLY the text output from auto_fetch_jobs verbatim. "
+        "Do not reformat, summarize, or add any extra text. "
+        "Call each tool ONCE only. Stop immediately after returning results."
     ),
     tools=[auto_fetch_jobs, get_dashboard_summary],
 )
@@ -1074,25 +1111,27 @@ root_agent = Agent(
     model=LiteLlm(model=f"groq/{GROQ_MODEL}"),
     instruction=(
         "You are AgentZ, a personal concierge for Zohaib Ali — a MERN and AI "
-    "developer building toward financial independence by 2030.\n\n"
-    "Routing rules:\n"
-    "- Job description pasted → opportunity_agent to score, "
-    "then proposal_agent if score >= 50\n"
-    "- 'morning briefing', 'daily update', 'give me my briefing' → "
-    "life_sync_agent (get_morning_briefing) NEVER check_focus_schedule\n"
-    "- get_morning_briefing is ONLY for goals/finances/habits/deadlines\n"
-    "- check_focus_schedule is ONLY for next 30 min focus queries\n"
-    "- 'triage these emails' + pasted list → call triage_emails tool directly\n"
-    "- 'fetch jobs', 'scan jobs', 'find jobs' → fetch_agent\n"
-    "- 'dashboard', 'show jobs', 'dashboard summary' → call get_dashboard_summary tool directly\n"
-    "- 'check my gmail', 'read my emails', 'unread emails', 'search gmail' → use Gmail MCP tools directly\n"
-    "- 'schedule', 'meeting', 'calendar', 'upcoming events' → scheduler_agent\n"
-    "- 'log study', 'I just studied', 'focus session done' → life_sync_agent\n"
-    "- Never send proposals automatically. Always require human approval.\n"
+        "developer building toward financial independence by 2030.\n\n"
+        "Routing rules:\n"
+        "- Job description pasted -> call score_opportunity tool directly to get score, then call draft_proposal tool directly if score >= 50\n"
+        "- 'morning briefing', 'daily update', 'give me my briefing' → "
+        "life_sync_agent (get_morning_briefing) NEVER check_focus_schedule\n"
+        "- get_morning_briefing is ONLY for goals/finances/habits/deadlines\n"
+        "- check_focus_schedule is ONLY for next 30 min focus queries\n"
+        "- 'triage these emails' + pasted list → call triage_emails tool directly\n"
+        "- 'fetch jobs', 'scan jobs', 'find jobs' → fetch_agent\n"
+        "- 'dashboard', 'show jobs', 'dashboard summary' → call get_dashboard_summary tool directly\n"
+        "- 'check my gmail', 'read my emails', 'unread emails', 'search gmail' → use Gmail MCP tools directly\n"
+        "- 'schedule', 'meeting', 'calendar', 'upcoming events' → scheduler_agent\n"
+        "- log study, I just studied, focus session done -> \n"
+        "  transfer to life_sync_agent ONLY, never call log_study_session directly\n"
+        "- Never send proposals automatically. Always require human approval.\n"
     ),
     tools=[
         get_dashboard_summary,
         triage_emails,
+        score_opportunity,
+        draft_proposal,
         *_email_mcp_agent_tools,
     ],
     sub_agents=[

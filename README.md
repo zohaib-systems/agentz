@@ -191,7 +191,7 @@ AgentZ isn't a capstone project I'll archive after submission — it's the infra
 
 ## Tech Stack
 
-ADK 2.0 (graph Workflow API) · Groq (Llama 4 Scout via LiteLLM) · SerpAPI · Google Calendar API · APScheduler · RapidFuzz · React (CDN, no build step) · agents-cli
+ADK 2.0 (graph Workflow API) · Groq (Llama 4 Scout via LiteLLM) · SerpAPI · Google Calendar API · APScheduler · RapidFuzz · React (CDN, no build step) · agents-cli, Gemini API
 
 ---
 

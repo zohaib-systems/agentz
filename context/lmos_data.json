@@ -23,7 +23,7 @@
   "habits": [
     {
       "name": "Exercise",
-      "streak": 2,
+      "streak": 6,
       "target_days": 21,
       "status": "active"
     }
@@ -35,6 +35,30 @@
       "duration_minutes": 45,
       "date": "2026-07-04",
       "timestamp": "2026-07-04T11:40:51.190913"
+    },
+    {
+      "skill": "IBM Full Stack",
+      "duration_minutes": 45,
+      "date": "2026-07-04",
+      "timestamp": "2026-07-04T16:52:45.906320"
+    },
+    {
+      "skill": "IBM Full Stack",
+      "duration_minutes": 45,
+      "date": "2026-07-04",
+      "timestamp": "2026-07-04T17:26:50.391617"
+    },
+    {
+      "skill": "IBM Full Stack",
+      "duration_minutes": 45,
+      "date": "2026-07-04",
+      "timestamp": "2026-07-04T17:31:06.610577"
+    },
+    {
+      "skill": "IBM Full Stack",
+      "duration_minutes": 45,
+      "date": "2026-07-04",
+      "timestamp": "2026-07-04T17:32:42.512208"
     }
   ]
 }
