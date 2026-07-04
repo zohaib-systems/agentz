@@ -855,6 +855,7 @@
     const ADK_BASE = "http://127.0.0.1:8000";
     const USER_ID = "zohaib";
     const SESSION_ID = "dashboard-" + Date.now();
+    const PROPOSALS_KEY = "agentz.proposals";
 
     function ScoreBadge({ score }) {
       const cls = score >= 70 ? "score-high" : score >= 50 ? "score-mid" : "score-low";
@@ -1145,7 +1146,7 @@
         try {
           const reply = await callAgent(text);
           setMessages(prev => [...prev, { role: "agent", text: reply }]);
-          if (reply.includes("PROPOSAL READY FOR REVIEW") || (reply.includes("proposal") && reply.includes("score") && reply.includes("review"))) {
+          if (/proposal ready for review/i.test(reply)) {
             onProposal({ proposal: reply, status: "pending_review", job_description: text });
           }
         } catch (e) {
@@ -1319,7 +1320,15 @@
     // ── App ───────────────────────────────────────────────────────────────────────
     function App() {
       const [tab, setTab] = React.useState("opportunities");
-      const [proposals, setProposals] = React.useState([]);
+      const [proposals, setProposals] = React.useState(() => {
+        try {
+          const raw = localStorage.getItem(PROPOSALS_KEY);
+          return raw ? JSON.parse(raw) : [];
+        } catch (e) {
+          console.warn("Could not load saved proposals:", e);
+          return [];
+        }
+      });
       const [toast, setToast] = React.useState(null);
       const [jobCount, setJobCount] = React.useState(0);
       const [highCount, setHighCount] = React.useState(0);
@@ -1336,6 +1345,14 @@
           setHighCount(jobs.filter(j => j.score >= 70).length);
         }).catch(() => { });
       }, []);
+
+      React.useEffect(() => {
+        try {
+          localStorage.setItem(PROPOSALS_KEY, JSON.stringify(proposals));
+        } catch (e) {
+          console.warn("Could not save proposals:", e);
+        }
+      }, [proposals]);
 
       function onToast(msg) { setToast(msg); setTimeout(() => setToast(null), 3100); }
       function addProposal(p) { setProposals(prev => [...prev, p]); setTab("proposals"); onToast("New proposal ready for review"); }
